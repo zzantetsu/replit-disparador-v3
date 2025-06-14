@@ -16,31 +16,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Helper function for authenticated API requests
-const apiRequestWithAuth = async (method: string, url: string, token: string, data?: unknown) => {
-  const headers: Record<string, string> = {
-    'Authorization': `Bearer ${token}`,
-  };
-  
-  if (data) {
-    headers['Content-Type'] = 'application/json';
-  }
-
-  const res = await fetch(url, {
-    method,
-    headers,
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
-
-  if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
-  }
-  
-  return res;
-};
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -48,67 +23,79 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check for existing session from localStorage
-    const checkSession = async () => {
-      try {
-        const storedToken = localStorage.getItem('auth_token');
-        const storedExpiry = localStorage.getItem('auth_expiry');
-        
-        if (storedToken && storedExpiry) {
-          const expiryDate = new Date(storedExpiry);
-          if (expiryDate > new Date()) {
-            // Token is still valid, fetch user data
-            const response = await apiRequestWithAuth('GET', '/api/auth/me', storedToken);
-            const userData = await response.json();
-            setUser(userData.user);
-            setSession({ user: userData.user, token: storedToken, expiresAt: storedExpiry });
-          } else {
-            // Token expired, clear storage
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('auth_expiry');
-          }
-        }
-      } catch (error) {
-        // Invalid token, clear storage
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('auth_expiry');
-      } finally {
-        setLoading(false);
-      }
-    };
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
-    checkSession();
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const checkUserStatus = async () => {
     try {
-      if (!session) {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.access_token) {
         return { isActivated: false, error: 'No valid session' };
       }
 
-      const response = await apiRequestWithAuth('GET', '/api/auth/status', session.token);
-      const data = await response.json();
-      return { isActivated: data.emailVerified };
+      const response = await fetch('https://mywebhook.roxiafy.cloud/webhook/auth/check-status', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.status === 200) {
+        const data = await response.json();
+        return { isActivated: data.isActivated === "true" };
+      } else if (response.status === 401) {
+        const data = await response.json();
+        if (data.error === "Unauthorized") {
+          return { isActivated: false, error: 'Token inválido ou expirado' };
+        } else {
+          return { isActivated: false };
+        }
+      } else {
+        return { isActivated: false, error: 'Erro na verificação do status' };
+      }
     } catch (error) {
-      return { isActivated: false, error: 'Connection error' };
+      return { isActivated: false, error: 'Erro de conexão' };
     }
   };
 
   const signIn = async (email: string, password: string) => {
     try {
-      const response = await apiRequest('POST', '/api/auth/login', { email, password });
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-      const { user: userData, token, expiresAt } = await response.json();
-      setUser(userData);
-      setSession({ user: userData, token, expiresAt });
-      
-      // Store token in localStorage
-      localStorage.setItem('auth_token', token);
-      localStorage.setItem('auth_expiry', expiresAt);
+      if (error) {
+        return { error: error.message };
+      }
 
-      // Check activation status
+      // Verificar status de ativação após login bem-sucedido
       const statusResult = await checkUserStatus();
       
+      if (statusResult.error === 'Token inválido ou expirado') {
+        // Token JWT inválido - fazer logout
+        await signOut();
+        return { error: statusResult.error };
+      }
+
       if (!statusResult.isActivated) {
         return { needsActivation: true };
       }
@@ -126,7 +113,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
     try {
-      const response = await apiRequest('POST', '/api/auth/register', { email, password, firstName, lastName });
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+          },
+        },
+      });
+
+      if (error) {
+        return { error: error.message };
+      }
 
       toast({
         title: "Success",
@@ -141,36 +141,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
-      await apiRequest('POST', '/api/auth/logout');
-
-      // Clear local storage
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('auth_expiry');
-      
-      setUser(null);
-      setSession(null);
-
-      toast({
-        title: "Success",
-        description: "Successfully signed out",
-      });
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Success",
+          description: "Successfully signed out",
+        });
+      }
     } catch (error) {
-      // Even if API call fails, clear local state
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('auth_expiry');
-      setUser(null);
-      setSession(null);
-      
       toast({
-        title: "Success",
-        description: "Successfully signed out",
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
       });
     }
   };
 
   const resetPassword = async (email: string) => {
     try {
-      const response = await apiRequest('POST', '/api/auth/reset-password', { email });
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        return { error: error.message };
+      }
 
       toast({
         title: "Success",
