@@ -48,8 +48,8 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
   return (
     <div className="min-h-screen flex relative">
       {/* Sidebar */}
-      <div className="w-72 p-4 flex flex-col relative z-10">
-        <div className="glass-card rounded-3xl min-h-[calc(100vh-2rem)] flex flex-col shadow-2xl">
+      <div className="w-72 p-4 flex flex-col relative z-10 max-h-screen">
+        <div className="glass-card rounded-3xl h-[calc(100vh-2rem)] flex flex-col shadow-2xl overflow-hidden">
           {/* Logo/Header */}
           <div className="p-6 border-b border-white/5">
             <div className="flex items-center space-x-3">
@@ -61,15 +61,15 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
           </div>
 
           {/* Navigation */}
-          <div className="flex-1 p-6">
-            <nav className="space-y-3">
+          <div className="flex-1 p-4 overflow-y-auto">
+            <nav className="space-y-2">
               {navigationItems.map((item) => {
                 const Icon = item.icon;
                 return (
                   <button
                     key={item.path}
                     onClick={() => setLocation(item.path)}
-                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 group ${
+                    className={`w-full flex items-center space-x-3 px-3 py-3 rounded-xl transition-all duration-300 group ${
                       item.active 
                         ? 'bg-gradient-to-r from-primary/30 to-purple-500/20 border border-primary/40 text-white shadow-lg shadow-primary/10' 
                         : 'text-gray-300 hover:text-white hover:bg-white/5'
@@ -86,46 +86,42 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
           </div>
 
           {/* Profile Section */}
-          <div className="p-6 border-t border-white/5">
+          <div className="p-4 border-t border-white/5 mt-auto">
             <div className="relative">
               <button
                 onClick={() => setIsProfileOpen(!isProfileOpen)}
-                className="w-full flex items-center space-x-4 px-4 py-4 rounded-2xl transition-all duration-300 hover:bg-white/5 text-white group"
+                className="w-full flex items-center space-x-3 px-3 py-3 rounded-xl transition-all duration-300 hover:bg-white/5 text-white group"
               >
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary via-purple-500 to-accent flex items-center justify-center text-white font-bold text-lg neon-glow shadow-xl">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary via-purple-500 to-accent flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                   {getInitials(user?.user_metadata?.first_name, user?.user_metadata?.last_name)}
                 </div>
-                <div className="flex-1 text-left">
-                  <div className="text-sm font-semibold font-secondary text-white truncate">
+                <div className="flex-1 text-left min-w-0">
+                  <div className="text-sm font-medium font-secondary text-white truncate">
                     {user?.user_metadata?.first_name} {user?.user_metadata?.last_name || 'User'}
                   </div>
                   <div className="text-xs text-gray-400 font-secondary truncate">{user?.email}</div>
                 </div>
                 {isProfileOpen ? (
-                  <ChevronUp className="w-4 h-4 text-gray-400 group-hover:text-primary transition-colors" />
+                  <ChevronUp className="w-4 h-4 text-gray-400 group-hover:text-primary transition-colors flex-shrink-0" />
                 ) : (
-                  <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-primary transition-colors" />
+                  <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-primary transition-colors flex-shrink-0" />
                 )}
               </button>
 
               {/* Profile Dropdown */}
               {isProfileOpen && (
-                <div className="absolute bottom-full left-0 right-0 mb-3 glass-card rounded-2xl p-4 shadow-2xl border border-white/10">
-                  <div className="space-y-3">
-                    <div className="px-3 py-3 border-b border-white/10">
-                      <div className="text-xs text-gray-400 font-secondary uppercase tracking-wider">Account</div>
+                <div className="absolute bottom-full left-0 right-0 mb-2 glass-card rounded-xl p-3 shadow-2xl border border-white/10 z-50">
+                  <div className="space-y-2">
+                    <div className="px-2 py-2 border-b border-white/10">
+                      <div className="text-xs text-gray-400 font-secondary uppercase tracking-wide">Account</div>
                       <div className="text-sm text-white font-secondary font-medium truncate mt-1">{user?.email}</div>
-                      <div className="text-xs text-gray-500 font-secondary mt-1">
-                        Active Session
-                      </div>
+                      <div className="text-xs text-gray-500 font-secondary mt-1">Active Session</div>
                     </div>
                     <button
                       onClick={handleSignOut}
-                      className="w-full flex items-center space-x-3 px-3 py-3 rounded-xl transition-all duration-300 hover:bg-red-500/10 text-red-400 hover:text-red-300 hover:border hover:border-red-500/20 group"
+                      className="w-full flex items-center space-x-2 px-2 py-2 rounded-lg transition-all duration-300 hover:bg-red-500/10 text-red-400 hover:text-red-300 group"
                     >
-                      <div className="w-8 h-8 rounded-lg bg-red-500/10 group-hover:bg-red-500/20 flex items-center justify-center transition-colors">
-                        <LogOut className="w-4 h-4" />
-                      </div>
+                      <LogOut className="w-4 h-4 flex-shrink-0" />
                       <span className="text-sm font-secondary font-medium">Sign Out</span>
                     </button>
                   </div>
