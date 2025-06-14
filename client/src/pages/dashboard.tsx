@@ -43,45 +43,9 @@ export default function Dashboard() {
         </header>
 
         {/* Main Grid */}
-        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* User Profile Card */}
-          <div className="lg:col-span-1">
-            <div className="glass-card rounded-3xl p-8 h-full">
-              <div className="text-center mb-8">
-                <div className="w-28 h-28 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-primary via-purple-500 to-accent flex items-center justify-center neon-glow shadow-2xl">
-                  <span className="text-white font-bold text-2xl font-primary">
-                    {getInitials(user?.user_metadata?.first_name, user?.user_metadata?.last_name)}
-                  </span>
-                </div>
-                <h3 className="text-2xl font-primary font-semibold mb-2 text-white">
-                  {getFullName(user?.user_metadata?.first_name, user?.user_metadata?.last_name)}
-                </h3>
-                <p className="text-gray-400 font-secondary text-lg">{user?.email}</p>
-              </div>
-              
-              <div className="space-y-4">
-                <div className="terminal-window">
-                  <div className="terminal-header">
-                    <div className="flex items-center">
-                      <div className="dot dot-red"></div>
-                      <div className="dot dot-yellow"></div>
-                      <div className="dot dot-green"></div>
-                      <span className="text-xs text-gray-400 ml-2 font-secondary">Session Details</span>
-                    </div>
-                  </div>
-                  <div className="p-4 space-y-2 text-sm font-mono">
-                    <div className="text-accent">user@authflow:~$</div>
-                    <div className="text-gray-300">Session expires: {formatDate(session?.expires_at?.toString())}</div>
-                    <div className="text-gray-300">Token: <span className="text-primary">{session?.access_token?.slice(0, 16)}...</span></div>
-                    <div className="text-green-400">✓ Authentication active</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
+        <div className="relative z-10">
           {/* Features Grid */}
-          <div className="lg:col-span-2">
+          <div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Feature Cards */}
               <div className="feature-card p-6 rounded-3xl">
