@@ -46,10 +46,10 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
   ];
 
   return (
-    <div className="min-h-screen flex relative">
+    <div className="h-screen flex relative overflow-hidden">
       {/* Sidebar */}
-      <div className="w-72 p-4 flex flex-col relative z-10 max-h-screen">
-        <div className="glass-card rounded-3xl h-[calc(100vh-2rem)] flex flex-col shadow-2xl overflow-hidden">
+      <div className="w-72 p-4 flex flex-col relative z-10 flex-shrink-0">
+        <div className="glass-card rounded-3xl h-full flex flex-col shadow-2xl">
           {/* Logo/Header */}
           <div className="p-6 border-b border-white/5">
             <div className="flex items-center space-x-3">
@@ -133,8 +133,10 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-auto">
-        {children}
+      <div className="flex-1 overflow-y-auto h-full">
+        <div className="min-h-full">
+          {children}
+        </div>
       </div>
     </div>
   );

@@ -29,7 +29,7 @@ export default function Dashboard() {
 
   return (
     <SidebarLayout>
-      <div className="min-h-screen p-8 relative z-10">
+      <div className="p-8 relative z-10">
         {/* Header */}
         <header className="relative z-10 mb-10">
           <div>
@@ -85,13 +85,13 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Feature Cards */}
               <div className="feature-card p-6 rounded-3xl">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center mr-4">
-                    <Shield className="w-6 h-6 text-white" />
+                <div className="flex items-start mb-4">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center mr-4 flex-shrink-0">
+                    <Shield className="w-7 h-7 text-white" />
                   </div>
-                  <div>
-                    <h4 className="font-primary font-semibold text-lg">Secure Authentication</h4>
-                    <p className="text-muted-foreground text-sm font-secondary">JWT-based session management</p>
+                  <div className="flex-1">
+                    <h4 className="font-primary font-semibold text-lg text-white mb-1">Secure Authentication</h4>
+                    <p className="text-gray-400 text-sm font-secondary">JWT-based session management</p>
                   </div>
                 </div>
                 <div className="text-sm text-gray-300 font-secondary">
@@ -100,13 +100,13 @@ export default function Dashboard() {
               </div>
 
               <div className="feature-card p-6 rounded-3xl">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent to-blue-500 flex items-center justify-center mr-4">
-                    <Zap className="w-6 h-6 text-white" />
+                <div className="flex items-start mb-4">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent to-blue-500 flex items-center justify-center mr-4 flex-shrink-0">
+                    <Zap className="w-7 h-7 text-white" />
                   </div>
-                  <div>
-                    <h4 className="font-primary font-semibold text-lg">N8N Integration</h4>
-                    <p className="text-muted-foreground text-sm font-secondary">Ready for workflow automation</p>
+                  <div className="flex-1">
+                    <h4 className="font-primary font-semibold text-lg text-white mb-1">N8N Integration</h4>
+                    <p className="text-gray-400 text-sm font-secondary">Ready for workflow automation</p>
                   </div>
                 </div>
                 <div className="text-sm text-gray-300 font-secondary">
@@ -115,13 +115,13 @@ export default function Dashboard() {
               </div>
 
               <div className="feature-card p-6 rounded-3xl">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mr-4">
-                    <Users className="w-6 h-6 text-white" />
+                <div className="flex items-start mb-4">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mr-4 flex-shrink-0">
+                    <Users className="w-7 h-7 text-white" />
                   </div>
-                  <div>
-                    <h4 className="font-primary font-semibold text-lg">User Management</h4>
-                    <p className="text-muted-foreground text-sm font-secondary">Complete authentication system</p>
+                  <div className="flex-1">
+                    <h4 className="font-primary font-semibold text-lg text-white mb-1">User Management</h4>
+                    <p className="text-gray-400 text-sm font-secondary">Complete authentication system</p>
                   </div>
                 </div>
                 <div className="text-sm text-gray-300 font-secondary">
@@ -130,13 +130,13 @@ export default function Dashboard() {
               </div>
 
               <div className="feature-card p-6 rounded-3xl">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center mr-4">
-                    <Activity className="w-6 h-6 text-white" />
+                <div className="flex items-start mb-4">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center mr-4 flex-shrink-0">
+                    <Activity className="w-7 h-7 text-white" />
                   </div>
-                  <div>
-                    <h4 className="font-primary font-semibold text-lg">Real-time Status</h4>
-                    <p className="text-muted-foreground text-sm font-secondary">Live session monitoring</p>
+                  <div className="flex-1">
+                    <h4 className="font-primary font-semibold text-lg text-white mb-1">Real-time Status</h4>
+                    <p className="text-gray-400 text-sm font-secondary">Live session monitoring</p>
                   </div>
                 </div>
                 <div className="text-sm text-gray-300 font-secondary">
@@ -157,7 +157,7 @@ export default function Dashboard() {
                 <div className="gradient-border rounded-2xl">
                   <Button className="w-full py-4 px-6 rounded-2xl font-semibold text-base transition-all duration-300 hover:scale-[1.02] gradient-border-content font-secondary text-white border-0"
                     style={{background: 'var(--gradient-primary)'}}>
-                    <Terminal className="w-5 h-5 mr-2" />
+                    <Terminal className="w-5 h-5 mr-2 flex-shrink-0" />
                     Launch Platform
                   </Button>
                 </div>
