@@ -1,7 +1,12 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from './supabase';
+import { User } from '../../../shared/schema';
+import { apiRequest } from './queryClient';
 import { useToast } from '@/hooks/use-toast';
+
+interface Session {
+  user: User;
+  access_token: string;
+}
 
 interface AuthContextType {
   user: User | null;
@@ -23,79 +28,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
+    // Check for existing session
+    const checkSession = async () => {
+      try {
+        const response = await apiRequest('GET', '/api/auth/me');
+        const userData = await response.json();
+        setUser(userData);
+        setSession({ user: userData, access_token: 'session-token' });
+      } catch (error) {
+        // No session found
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    checkSession();
   }, []);
 
   const checkUserStatus = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session?.access_token) {
+      if (!session) {
         return { isActivated: false, error: 'No valid session' };
       }
 
-      const response = await fetch('https://mywebhook.roxiafy.cloud/webhook/auth/check-status', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.status === 200) {
+      const response = await apiRequest('/api/auth/status');
+      if (response.ok) {
         const data = await response.json();
-        return { isActivated: data.isActivated === "true" };
-      } else if (response.status === 401) {
-        const data = await response.json();
-        if (data.error === "Unauthorized") {
-          return { isActivated: false, error: 'Token inválido ou expirado' };
-        } else {
-          return { isActivated: false };
-        }
+        return { isActivated: data.emailVerified };
       } else {
-        return { isActivated: false, error: 'Erro na verificação do status' };
+        return { isActivated: false, error: 'Failed to check status' };
       }
     } catch (error) {
-      return { isActivated: false, error: 'Erro de conexão' };
+      return { isActivated: false, error: 'Connection error' };
     }
   };
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const response = await apiRequest('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password }),
       });
 
-      if (error) {
-        return { error: error.message };
+      if (!response.ok) {
+        const errorData = await response.json();
+        return { error: errorData.message || 'Login failed' };
       }
 
-      // Verificar status de ativação após login bem-sucedido
+      const userData = await response.json();
+      setUser(userData);
+      setSession({ user: userData, access_token: 'session-token' });
+
+      // Check activation status
       const statusResult = await checkUserStatus();
       
-      if (statusResult.error === 'Token inválido ou expirado') {
-        // Token JWT inválido - fazer logout
-        await signOut();
-        return { error: statusResult.error };
-      }
-
       if (!statusResult.isActivated) {
         return { needsActivation: true };
       }
@@ -113,19 +99,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-          },
-        },
+      const response = await apiRequest('/api/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({ email, password, firstName, lastName }),
       });
 
-      if (error) {
-        return { error: error.message };
+      if (!response.ok) {
+        const errorData = await response.json();
+        return { error: errorData.message || 'Registration failed' };
       }
 
       toast({
@@ -141,22 +122,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Success",
-          description: "Successfully signed out",
-        });
-      }
+      const response = await apiRequest('/api/auth/logout', {
+        method: 'POST',
+      });
+
+      setUser(null);
+      setSession(null);
+
+      toast({
+        title: "Success",
+        description: "Successfully signed out",
+      });
     } catch (error) {
       toast({
-        title: "Error",
+        title: "Error", 
         description: "An unexpected error occurred",
         variant: "destructive",
       });
@@ -165,12 +144,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resetPassword = async (email: string) => {
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+      const response = await apiRequest('/api/auth/reset-password', {
+        method: 'POST',
+        body: JSON.stringify({ email }),
       });
 
-      if (error) {
-        return { error: error.message };
+      if (!response.ok) {
+        const errorData = await response.json();
+        return { error: errorData.message || 'Password reset failed' };
       }
 
       toast({
