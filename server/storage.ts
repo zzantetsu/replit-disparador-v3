@@ -1,4 +1,5 @@
 import { users, type User, type InsertUser } from "@shared/schema";
+import bcrypt from "bcryptjs";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -15,6 +16,26 @@ export class MemStorage implements IStorage {
   constructor() {
     this.users = new Map();
     this.currentId = 1;
+    this.initializeTestUser();
+  }
+
+  private async initializeTestUser() {
+    // Create a test user for development
+    const hashedPassword = await bcrypt.hash('password123', 12);
+    
+    const testUser: User = {
+      id: 1,
+      email: 'test@example.com',
+      firstName: 'Test',
+      lastName: 'User',
+      password: hashedPassword,
+      emailVerified: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    
+    this.users.set(1, testUser);
+    this.currentId = 2;
   }
 
   async getUser(id: number): Promise<User | undefined> {

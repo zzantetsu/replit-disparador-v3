@@ -1,13 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User } from '../../../shared/schema';
-import { apiRequest } from './queryClient';
+import { User, Session } from '@supabase/supabase-js';
+import { supabase } from './supabase';
 import { useToast } from '@/hooks/use-toast';
-
-interface Session {
-  user: User;
-  token: string;
-  expiresAt: string;
-}
 
 interface AuthContextType {
   user: User | null;
