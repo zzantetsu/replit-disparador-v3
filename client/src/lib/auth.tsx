@@ -51,13 +51,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { isActivated: false, error: 'No valid session' };
       }
 
-      const response = await apiRequest('/api/auth/status');
-      if (response.ok) {
-        const data = await response.json();
-        return { isActivated: data.emailVerified };
-      } else {
-        return { isActivated: false, error: 'Failed to check status' };
-      }
+      const response = await apiRequest('GET', '/api/auth/status');
+      const data = await response.json();
+      return { isActivated: data.emailVerified };
     } catch (error) {
       return { isActivated: false, error: 'Connection error' };
     }
@@ -65,15 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const response = await apiRequest('/api/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        return { error: errorData.message || 'Login failed' };
-      }
+      const response = await apiRequest('POST', '/api/auth/login', { email, password });
 
       const userData = await response.json();
       setUser(userData);
@@ -99,15 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
     try {
-      const response = await apiRequest('/api/auth/register', {
-        method: 'POST',
-        body: JSON.stringify({ email, password, firstName, lastName }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        return { error: errorData.message || 'Registration failed' };
-      }
+      const response = await apiRequest('POST', '/api/auth/register', { email, password, firstName, lastName });
 
       toast({
         title: "Success",
@@ -122,9 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
-      const response = await apiRequest('/api/auth/logout', {
-        method: 'POST',
-      });
+      const response = await apiRequest('POST', '/api/auth/logout');
 
       setUser(null);
       setSession(null);
@@ -144,15 +122,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resetPassword = async (email: string) => {
     try {
-      const response = await apiRequest('/api/auth/reset-password', {
-        method: 'POST',
-        body: JSON.stringify({ email }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        return { error: errorData.message || 'Password reset failed' };
-      }
+      const response = await apiRequest('POST', '/api/auth/reset-password', { email });
 
       toast({
         title: "Success",
