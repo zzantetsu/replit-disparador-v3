@@ -29,34 +29,34 @@ export default function Dashboard() {
 
   return (
     <SidebarLayout>
-      <div className="min-h-screen p-6 relative">
+      <div className="min-h-screen p-8 relative z-10">
         {/* Header */}
-        <header className="relative z-10 mb-8">
+        <header className="relative z-10 mb-10">
           <div>
-            <h1 className="text-4xl font-primary font-bold bg-gradient-to-r from-white via-purple-200 to-accent bg-clip-text text-transparent">
+            <h1 className="text-5xl font-primary font-bold bg-gradient-to-r from-white via-purple-200 to-accent bg-clip-text text-transparent mb-3">
               Welcome back
             </h1>
-            <p className="text-muted-foreground text-lg font-secondary mt-2">
+            <p className="text-gray-400 text-xl font-secondary">
               Your authentication platform is ready for N8N integration
             </p>
           </div>
         </header>
 
         {/* Main Grid */}
-        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* User Profile Card */}
           <div className="lg:col-span-1">
             <div className="glass-card rounded-3xl p-8 h-full">
-              <div className="text-center mb-6">
-                <div className="w-24 h-24 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary via-purple-500 to-accent flex items-center justify-center neon-glow">
-                  <span className="text-white font-bold text-xl font-primary">
+              <div className="text-center mb-8">
+                <div className="w-28 h-28 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-primary via-purple-500 to-accent flex items-center justify-center neon-glow shadow-2xl">
+                  <span className="text-white font-bold text-2xl font-primary">
                     {getInitials(user?.user_metadata?.first_name, user?.user_metadata?.last_name)}
                   </span>
                 </div>
-                <h3 className="text-xl font-primary font-semibold mb-2">
+                <h3 className="text-2xl font-primary font-semibold mb-2 text-white">
                   {getFullName(user?.user_metadata?.first_name, user?.user_metadata?.last_name)}
                 </h3>
-                <p className="text-muted-foreground font-secondary">{user?.email}</p>
+                <p className="text-gray-400 font-secondary text-lg">{user?.email}</p>
               </div>
               
               <div className="space-y-4">

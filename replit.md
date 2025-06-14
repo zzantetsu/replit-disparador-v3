@@ -110,6 +110,15 @@ This is a full-stack web application built with React, Express.js, and PostgreSQ
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+Recent Changes:
+- June 14, 2025: Initial setup and migration to Replit environment
+- June 14, 2025: Implemented dark glassmorphism UI design with purple gradients and gridline background
+- June 14, 2025: Enhanced sidebar with improved profile section and modern navigation styling
+- June 14, 2025: Updated dashboard with refined user profile cards and feature sections
+- June 14, 2025: Applied consistent color scheme with black/dark gray base and purple accent colors
+
 ## Changelog
 
 Changelog:

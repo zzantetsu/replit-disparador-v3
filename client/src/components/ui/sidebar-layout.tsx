@@ -49,7 +49,7 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
     <div className="min-h-screen flex relative">
       {/* Sidebar */}
       <div className="w-72 p-4 flex flex-col relative z-10">
-        <div className="glass-card rounded-3xl h-full flex flex-col shadow-2xl">
+        <div className="glass-card rounded-3xl min-h-[calc(100vh-2rem)] flex flex-col shadow-2xl">
           {/* Logo/Header */}
           <div className="p-6 border-b border-white/5">
             <div className="flex items-center space-x-3">
@@ -69,20 +69,16 @@ export function SidebarLayout({ children }: SidebarLayoutProps) {
                   <button
                     key={item.path}
                     onClick={() => setLocation(item.path)}
-                    className={`w-full flex items-center space-x-4 px-4 py-4 rounded-2xl transition-all duration-300 group ${
+                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 group ${
                       item.active 
                         ? 'bg-gradient-to-r from-primary/30 to-purple-500/20 border border-primary/40 text-white shadow-lg shadow-primary/10' 
-                        : 'text-gray-300 hover:text-white hover:bg-white/5 hover:border hover:border-white/10'
+                        : 'text-gray-300 hover:text-white hover:bg-white/5'
                     }`}
                   >
-                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
-                      item.active 
-                        ? 'bg-gradient-to-br from-primary to-purple-500 text-white shadow-lg' 
-                        : 'bg-white/5 group-hover:bg-primary/20'
-                    }`}>
-                      <Icon className="w-4 h-4" />
-                    </div>
-                    <span className="font-secondary font-medium text-sm">{item.name}</span>
+                    <Icon className={`w-5 h-5 flex-shrink-0 ${
+                      item.active ? 'text-primary' : 'group-hover:text-primary'
+                    }`} />
+                    <span className="font-secondary font-medium text-sm truncate">{item.name}</span>
                   </button>
                 );
               })}
