@@ -5,7 +5,8 @@ import { useToast } from '@/hooks/use-toast';
 
 interface Session {
   user: User;
-  access_token: string;
+  token: string;
+  expiresAt: string;
 }
 
 interface AuthContextType {
@@ -21,6 +22,31 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Helper function for authenticated API requests
+const apiRequestWithAuth = async (method: string, url: string, token: string, data?: unknown) => {
+  const headers: Record<string, string> = {
+    'Authorization': `Bearer ${token}`,
+  };
+  
+  if (data) {
+    headers['Content-Type'] = 'application/json';
+  }
+
+  const res = await fetch(url, {
+    method,
+    headers,
+    body: data ? JSON.stringify(data) : undefined,
+    credentials: "include",
+  });
+
+  if (!res.ok) {
+    const text = (await res.text()) || res.statusText;
+    throw new Error(`${res.status}: ${text}`);
+  }
+  
+  return res;
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -28,15 +54,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Check for existing session
+    // Check for existing session from localStorage
     const checkSession = async () => {
       try {
-        const response = await apiRequest('GET', '/api/auth/me');
-        const userData = await response.json();
-        setUser(userData);
-        setSession({ user: userData, access_token: 'session-token' });
+        const storedToken = localStorage.getItem('auth_token');
+        const storedExpiry = localStorage.getItem('auth_expiry');
+        
+        if (storedToken && storedExpiry) {
+          const expiryDate = new Date(storedExpiry);
+          if (expiryDate > new Date()) {
+            // Token is still valid, fetch user data
+            const response = await apiRequestWithAuth('GET', '/api/auth/me', storedToken);
+            const userData = await response.json();
+            setUser(userData.user);
+            setSession({ user: userData.user, token: storedToken, expiresAt: storedExpiry });
+          } else {
+            // Token expired, clear storage
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('auth_expiry');
+          }
+        }
       } catch (error) {
-        // No session found
+        // Invalid token, clear storage
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('auth_expiry');
       } finally {
         setLoading(false);
       }
@@ -51,7 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { isActivated: false, error: 'No valid session' };
       }
 
-      const response = await apiRequest('GET', '/api/auth/status');
+      const response = await apiRequestWithAuth('GET', '/api/auth/status', session.token);
       const data = await response.json();
       return { isActivated: data.emailVerified };
     } catch (error) {
@@ -63,9 +104,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await apiRequest('POST', '/api/auth/login', { email, password });
 
-      const userData = await response.json();
+      const { user: userData, token, expiresAt } = await response.json();
       setUser(userData);
-      setSession({ user: userData, access_token: 'session-token' });
+      setSession({ user: userData, token, expiresAt });
+      
+      // Store token in localStorage
+      localStorage.setItem('auth_token', token);
+      localStorage.setItem('auth_expiry', expiresAt);
 
       // Check activation status
       const statusResult = await checkUserStatus();
@@ -102,8 +147,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signOut = async () => {
     try {
-      const response = await apiRequest('POST', '/api/auth/logout');
+      await apiRequest('POST', '/api/auth/logout');
 
+      // Clear local storage
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_expiry');
+      
       setUser(null);
       setSession(null);
 
@@ -112,10 +161,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         description: "Successfully signed out",
       });
     } catch (error) {
+      // Even if API call fails, clear local state
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_expiry');
+      setUser(null);
+      setSession(null);
+      
       toast({
-        title: "Error", 
-        description: "An unexpected error occurred",
-        variant: "destructive",
+        title: "Success",
+        description: "Successfully signed out",
       });
     }
   };
